@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from schema import PredictRequest, PredictResponse
 import joblib
 import pandas as pd
 
+API_KEY = "ramdas-stockout-prediction-!@#$!@#!@#"   # change this to something strong
 app = FastAPI(title="Stockout Risk Prediction API", version="1.0")
 
 MODEL_PATH = "stockout_model.pkl"
@@ -22,7 +23,10 @@ def health():
     return {"status": "ok"}
 
 @app.post("/predict", response_model=PredictResponse)
-def predict(req: PredictRequest):
+def predict(req: PredictRequest, x_api_key: str = Header(None)):
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
     row = req.model_dump()
     X = pd.DataFrame([row], columns=FEATURE_COLS)
 
