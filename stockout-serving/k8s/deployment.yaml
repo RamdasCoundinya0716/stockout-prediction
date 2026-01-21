@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: stockout-api
-          image: stockout-api:1.0
+          image: ram0716/stockout-api:1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
