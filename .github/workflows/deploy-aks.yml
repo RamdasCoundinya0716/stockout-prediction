@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # ---------- Docker Build + Push ----------
+      # ---------------- Docker build + push ----------------
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
@@ -27,37 +27,20 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/stockout-api:latest
 
-      # ---------- Setup kubectl ----------
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
+      # ---------------- Azure login ----------------
+      - name: Azure Login
+        uses: azure/login@v2
         with:
-          version: "latest"
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # ---------- Configure kubeconfig ----------
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          cat <<EOF > $HOME/.kube/config
-          apiVersion: v1
-          kind: Config
-          clusters:
-          - cluster:
-              certificate-authority-data: ${{ secrets.AKS_CA_CERT }}
-              server: ${{ secrets.AKS_SERVER }}
-            name: aks-cluster
-          contexts:
-          - context:
-              cluster: aks-cluster
-              user: github-user
-            name: aks-context
-          current-context: aks-context
-          users:
-          - name: github-user
-            user:
-              token: ${{ secrets.AKS_TOKEN }}
-          EOF
+      # ---------------- Set AKS context ----------------
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: stockout-rg
+          cluster-name: stockout-aks
 
-      # ---------- Deploy YAML to AKS ----------
+      # ---------------- Deploy ----------------
       - name: Deploy to AKS
         run: |
           kubectl apply -f k8s/deployment.yaml
