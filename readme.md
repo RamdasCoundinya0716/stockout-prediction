@@ -1,17 +1,3 @@
-Absolutely ✅ Below is an **updated README.md** that includes everything you did till now:
-
-✅ Databricks pipeline
-✅ MLflow training + batch inference
-✅ FastAPI real-time serving
-✅ Docker + Kubernetes manifests
-✅ AKS public deployment
-✅ GitHub Actions CI + AKS auto-deploy
-✅ API key protection + Cloudflare demo (optional mention)
-
-Copy-paste this fully into your `README.md`.
-
----
-
 # 📦 Stockout Risk Prediction System — End-to-End MLOps (Databricks + MLflow + FastAPI + Docker + AKS)
 
 ## 🚀 Overview
