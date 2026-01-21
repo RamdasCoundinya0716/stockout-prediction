@@ -1,0 +1,65 @@
+name: Build + Deploy to AKS
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ---------- Docker Build + Push ----------
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./stockout-serving
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/stockout-api:latest
+
+      # ---------- Setup kubectl ----------
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "latest"
+
+      # ---------- Configure kubeconfig ----------
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          cat <<EOF > $HOME/.kube/config
+          apiVersion: v1
+          kind: Config
+          clusters:
+          - cluster:
+              certificate-authority-data: ${{ secrets.AKS_CA_CERT }}
+              server: ${{ secrets.AKS_SERVER }}
+            name: aks-cluster
+          contexts:
+          - context:
+              cluster: aks-cluster
+              user: github-user
+            name: aks-context
+          current-context: aks-context
+          users:
+          - name: github-user
+            user:
+              token: ${{ secrets.AKS_TOKEN }}
+          EOF
+
+      # ---------- Deploy YAML to AKS ----------
+      - name: Deploy to AKS
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl rollout status deployment stockout-api
