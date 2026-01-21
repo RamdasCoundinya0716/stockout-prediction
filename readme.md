@@ -250,7 +250,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/predict" `
 
 ```json
 {
-  "stockout_risk_score": 0.99,
+  "stockout_risk_score": 0.99, // This is the probability/confidence (≈ 99%) that the product will stock out in the next 7 days
   "stockout_risk_label": 1
 }
 ```
